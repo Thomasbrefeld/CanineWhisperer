@@ -45,7 +45,7 @@ def Feed():
                 Read_Scale()
         GPIO.output(food_motor, False)
         amount_added = int(scale_input - starting_amount)
-        print('scale amount:', scale_input, ' --- Htime:', Htime, ' --- time():', int(time()), ' --- run time:', int$
+        print('scale amount:', scale_input, ' --- Htime:', Htime, ' --- time():', int(time()))
         if (int(time()) - start_time > 15):
                 email("feeding-time")
         else:
@@ -65,7 +65,7 @@ def Water():
         GPIO.output(water_pump, False)
         email("water ending")
         Current_Time()
-        print('Water sensor level:', water_level, ' --- Htime:', Htime, ' --- time():', int(time()), ' --- run time:$
+        print('Water sensor level:', water_level, ' --- Htime:', Htime, ' --- time():', int(time()))
 
 def email(sel_file):
         mail = smtplib.SMTP('smtp.gmail.com',587)
