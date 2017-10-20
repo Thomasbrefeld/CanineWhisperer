@@ -1,4 +1,4 @@
-import os, struct, matplotlib, math, smtplib
+import os, struct, math, smtplib
 import RPi.GPIO as GPIO
 from time import *
 
@@ -32,7 +32,7 @@ def Current_Time():
         Mtime = int(strftime("%M"))
         global Htime
         Htime = int(strftime("%H"))
-        print(Htime, ‘:’, Mtime, ‘.’, Stime)
+        print(Htime, ':', Mtime, '.', Stime)
 
 def Feed():
         Read_Scale()
@@ -95,10 +95,15 @@ try:
                 if ((Htime == 11) and (food_mark != 11)):
                         Feed()
                         food_mark = 11
+                if (Htime == 8):
+                        Read_Scale()
+                        if (scale_input < 35):
+                                email('updating/rebooting')
+                                os.system('sudo reboot -r now')
                 sleep(1)
 
 except Exception as e:
-        email(join(map("'{0}'".format, e)))
+        email('error')
         print(e)
         GPIO.output(food_motor, False)
         GPIO.output(water_pump, False)
