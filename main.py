@@ -41,16 +41,16 @@ def Feed():
         Read_Scale()
         starting_amount = scale_input
         start_time = int(time())
-        email("feeding initialized at-",Htime,":",Mtime,".",Stime)
+        email("feeding initialized")
         GPIO.output(food_motor, True)
         while ((scale_input < 35) and (int(time()) - start_time < 15)):
                 Read_Scale()
         GPIO.output(food_motor, False)
         amount_added = int(scale_input - starting_amount)
         if (int(time()) - start_time > 15):
-                email("ERROR: Feeding exited based on allotted time. System needs manual reboot.-",Htime,":",Mtime,".",Stime)
+                email("ERROR: Feeding exited based on allotted time. System needs manual reboot.")
         else:
-                email("Feeding exited normally at-",Htime,":",Mtime,".",Stime)
+                email("Feeding exited normally")
         Current_Time()
 
 def Water():
@@ -64,10 +64,10 @@ def Water():
                 water_level = GPIO.input(water_sensor)
         GPIO.output(water_pump, False)
         if(int(time()) - start_time > 6):
-                email('CRITICAL ERROR: Watering exited based on allotted time. System needs a immediate reboot. -',Htime,':',Mtime,'.'Stime)
+                email('CRITICAL ERROR: Watering exited based on allotted time. System needs a immediate reboot.')
                 #global critical_error_exit = 1
         else:
-                email('Watering exited at -',Htime,':',Mtime,'.'Stime)
+                email('Watering exited at')
         Current_Time()
 
 def email(sel_file):
@@ -86,7 +86,7 @@ try:
         water_mark = Htime
         Feed()
         food_mark = Htime
-        while (critical_error_exit = 0):
+        while (critical_error_exit == 0):
                 Current_Time()
                 water_level = GPIO.input(water_sensor)
                 if ((water_level != 1) and (water_mark != Htime)):
@@ -102,13 +102,14 @@ try:
                         Read_Scale()
                         if (scale_input <= 2):
                                 email('updating/rebooting')
-                                os.system('sudo reboot -r now')
+                                os.system('sudo reboot')
                 sleep(1)
 
 except Exception as e:
         email('error')
+        print(e)
         GPIO.output(food_motor, False)
         GPIO.output(water_pump, False)
 email("Program exited")
 GPIO.cleanup()
-os.system('sudo reboot -r now')
+os.system('sudo reboot')
