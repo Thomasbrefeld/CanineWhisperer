@@ -5,6 +5,7 @@ from time import *
 food_motor = 40
 water_pump = 38
 water_sensor = 36
+critical_error_exit = 0
 
 GPIO.setwarnings(False)
 
@@ -23,6 +24,9 @@ def Read_Scale():
         for i in range(4):
                 list.append(struct.unpack(hiddev_event_fmt, os.read(fd,struct.calcsize(hiddev_event_fmt))))
         global scale_input
+        if (scale_input > 100):
+                email('ERROR: Scale input undefined. System need manual reboot.')
+                global critical_error_exit = 1
         scale_input = ((list[3][1]) % 256)
 
 def Current_Time():
@@ -32,24 +36,21 @@ def Current_Time():
         Mtime = int(strftime("%M"))
         global Htime
         Htime = int(strftime("%H"))
-        print(Htime, ':', Mtime, '.', Stime)
 
 def Feed():
         Read_Scale()
         starting_amount = scale_input
         start_time = int(time())
-        email("feeding")
-        print('starting scale amount:', starting_amount, ' --- Htime:', Htime, ' --- start time:', start_time)
+        email("feeding initialized at-",Htime,":",Mtime,".",Stime)
         GPIO.output(food_motor, True)
         while ((scale_input < 35) and (int(time()) - start_time < 15)):
                 Read_Scale()
         GPIO.output(food_motor, False)
         amount_added = int(scale_input - starting_amount)
-        print('scale amount:', scale_input, ' --- Htime:', Htime, ' --- time():', int(time()))
         if (int(time()) - start_time > 15):
-                email("feeding-time")
+                email("ERROR: Feeding exited based on allotted time. System needs manual reboot.-",Htime,":",Mtime,".",Stime)
         else:
-                email("feeding ending")
+                email("Feeding exited normally at-",Htime,":",Mtime,".",Stime)
         Current_Time()
 
 def Water():
@@ -59,13 +60,15 @@ def Water():
         email("watering")
         GPIO.output(water_pump, True)
         start_time = int(time())
-        print('Water sensor level:', water_level, ' --- Htime:', Htime, ' --- start time:', start_time)
         while ((water_level != 1) and (int(time()) - start_time < 6)):
                 water_level = GPIO.input(water_sensor)
         GPIO.output(water_pump, False)
-        email("water ending")
+        if(int(time()) - start_time > 6):
+                email('CRITICAL ERROR: Watering exited based on allotted time. System needs a immediate reboot. -',Htime,':',Mtime,'.'Stime)
+                #global critical_error_exit = 1
+        else:
+                email('Watering exited at -',Htime,':',Mtime,'.'Stime)
         Current_Time()
-        print('Water sensor level:', water_level, ' --- Htime:', Htime, ' --- time():', int(time()))
 
 def email(sel_file):
         mail = smtplib.SMTP('smtp.gmail.com',587)
@@ -83,7 +86,7 @@ try:
         water_mark = Htime
         Feed()
         food_mark = Htime
-        while True:
+        while (critical_error_exit = 0):
                 Current_Time()
                 water_level = GPIO.input(water_sensor)
                 if ((water_level != 1) and (water_mark != Htime)):
@@ -97,16 +100,15 @@ try:
                         food_mark = 11
                 if (Htime == 8):
                         Read_Scale()
-                        if (scale_input < 35):
+                        if (scale_input <= 2):
                                 email('updating/rebooting')
                                 os.system('sudo reboot -r now')
                 sleep(1)
 
 except Exception as e:
         email('error')
-        print(e)
         GPIO.output(food_motor, False)
         GPIO.output(water_pump, False)
-        GPIO.cleanup()
 email("Program exited")
 GPIO.cleanup()
+os.system('sudo reboot -r now')
