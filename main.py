@@ -74,8 +74,8 @@ def email(sel_file):
         mail = smtplib.SMTP('smtp.gmail.com',587)
         mail.ehlo()
         mail.starttls()
-        mail.login('sciencefair930@gmail.com','Buckwheat2016')
-        mail.sendmail('sciencefair930@gmail.com','3133007575@vtext.com',sel_file)
+        mail.login('email@gmail.com','password')
+        mail.sendmail('email@gmail.com','phone_number@vtext.com',sel_file)
         mail.close()
 
 try:
